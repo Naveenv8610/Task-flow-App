@@ -1,0 +1,33 @@
+const express = require("express");
+const router = express.Router();
+const signupController = require("../controller/signupController");
+const loginController = require("../controller/loginController");
+const getunApprovedUsers = require("../controller/getunApprovedusers");
+const UpdateUserApproval = require("../controller/approveUserController");
+const deleteUser = require("../controller/deleteuserController");
+const gettAllUsers = require("../controller/getAllusers");
+const editUser = require("../controller/editUser");
+const createtask = require("../controller/createTaskController");
+const getAllEmployees = require("../controller/getEmployees");
+const getAllTasks = require("../controller/getTasks");
+const assignTask = require("../controller/assignTaskController");
+const getALlAsignesTasks = require("../controller/getAllAssignedTasks");
+const getAssignedTaskForUser = require("../controller/getAssignedTaskForUser");
+const updateTask = require("../controller/upadteTask");
+
+router.post("/signup", signupController);
+router.post("/signin", loginController);
+router.get("/getAllUnApprovedUsers", getunApprovedUsers);
+router.put("/approveUser/:id", UpdateUserApproval);
+router.delete("/deleteUser/:id", deleteUser);
+router.get("/getAllUsers", gettAllUsers);
+router.put("/eidtuser/:id", editUser);
+router.post("/createTask", createtask);
+router.get("/getAllEmployees", getAllEmployees);
+router.get("/getAllTasks", getAllTasks);
+router.post("/assignTask", assignTask);
+router.get("/getAllAssignedTasks", getALlAsignesTasks);
+router.get("/getAssignedTaskofUser/:id", getAssignedTaskForUser);
+router.put("/updateTask/:id", updateTask);
+
+module.exports = router;
