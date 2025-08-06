@@ -22,7 +22,11 @@ app.use("/api/assign", routes);
 app.use("/api/get", routes);
 app.use("/api/getTask", routes);
 app.use("/api/edit", routes);
-
+app.use("/api/get", routes);
+app.use("/api/get", routes);
+app.use("/api/get", routes);
+app.use("/api/edit", routes);
+app.use("/api/delete", routes);
 mongoose
   .connect(MONGO_URL)
   .then(() => {

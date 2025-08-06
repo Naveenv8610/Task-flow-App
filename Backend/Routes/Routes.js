@@ -14,6 +14,12 @@ const assignTask = require("../controller/assignTaskController");
 const getALlAsignesTasks = require("../controller/getAllAssignedTasks");
 const getAssignedTaskForUser = require("../controller/getAssignedTaskForUser");
 const updateTask = require("../controller/upadteTask");
+const getUsersCount = require("../controller/getUserCount");
+const tasksCount = require("../controller/getTasksCount");
+const userTask = require("../controller/getuserTaskCount");
+const editTask = require("../controller/editTask");
+const deleteTask = require("../controller/deleteTask");
+const user = require("../model/user");
 
 router.post("/signup", signupController);
 router.post("/signin", loginController);
@@ -29,5 +35,9 @@ router.post("/assignTask", assignTask);
 router.get("/getAllAssignedTasks", getALlAsignesTasks);
 router.get("/getAssignedTaskofUser/:id", getAssignedTaskForUser);
 router.put("/updateTask/:id", updateTask);
-
+router.get("/getUsersCount", getUsersCount);
+router.get("/getTasksCount", tasksCount);
+router.get("/getUserTask/:id", userTask);
+router.put("/editTask/:id", editTask);
+router.delete("/deleteTask/:id", deleteTask);
 module.exports = router;

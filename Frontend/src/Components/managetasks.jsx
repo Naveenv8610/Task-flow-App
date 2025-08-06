@@ -1,5 +1,4 @@
 import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
 import {
   Box,
   Button,
@@ -13,30 +12,37 @@ import {
   Select,
   Stack,
   Typography,
+  TextField,
 } from "@mui/material";
 import EditSquareIcon from "@mui/icons-material/EditSquare";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useEffect } from "react";
 import { useState } from "react";
 import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
+import dayjs from "dayjs";
 
 const ManageTasks = () => {
   const [alltasks, setAllTasks] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectEmployee, setSelectEmployee] = useState("");
-  const [taskTitle, setTaskTitle] = useState("");
-  const [deadline, setDeadLine] = useState("");
-  const [status, setStatus] = useState("");
-  const [edittask, setEditTask] = useState(null);
+  const [employees, setEmployees] = useState([]);
+
+  const [tasks, setTasks] = useState([]);
+  const [deadline, setDeadline] = useState();
+
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [tasktitle, setTaskTitle] = useState("");
+  const [status, setStatus] = useState();
+  const [selectedTask, setSelectedTask] = useState(null);
+
   const columns = [
-    { field: "serialNo", headerName: "S.No", width: 70 },
-    { field: "employee", headerName: "Employee", width: 150 },
-    { field: "tasktitle", headerName: "Task Title", width: 150 },
+    { field: "serialNo", headerName: "S.No", flex: 0.3 },
+    { field: "employee", headerName: "Employee", flex: 0.7 },
+    { field: "tasktitle", headerName: "Task Title", flex: 0.9 },
     {
       field: "deadline",
       headerName: "Deadline",
       type: "number",
-      width: 90,
+      flex: 0.3,
       renderCell: (params) => {
         const date = new Date(params.value);
         return date.toLocaleDateString();
@@ -45,20 +51,24 @@ const ManageTasks = () => {
     {
       field: "status",
       headerName: "Status",
-      width: 150,
+      flex: 0.4,
     },
-    { field: "assignedby", headerName: "Assigned By", width: 100 },
+    { field: "assignedby", headerName: "Assigned By", flex: 0.6 },
     {
       field: "actions",
       headerName: "Actions",
-      width: 200,
+      flex: 0.6,
       renderCell: (params) => (
         <Stack direction="row">
           <Button
             endIcon={<EditSquareIcon />}
             onClick={() => handleEdit(params.row)}
           />
-          <Button sx={{ color: "red" }} endIcon={<DeleteIcon />} />
+          <Button
+            sx={{ color: "red" }}
+            endIcon={<DeleteIcon />}
+            onClick={() => handleDelete(params.row._id)}
+          />
         </Stack>
       ),
     },
@@ -82,8 +92,11 @@ const ManageTasks = () => {
           deadline: new Date(task.deadline),
           status: task.status,
           assignedby: task.assignedBy?.name || "N/A",
+          assignedTo: task.assignedTo,
+          taskId: task.taskId,
         }));
         setAllTasks(TaskwithSerialNo);
+        console.log("ALL Tasks ", TaskwithSerialNo);
       } catch (error) {
         console.log("Error in fecting Tasks", error);
       }
@@ -91,10 +104,124 @@ const ManageTasks = () => {
 
     fetchAllTasks();
   }, []);
+  useEffect(() => {
+    const fetctEmployees = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:4000/api/getEmployees/getAllEmployees",
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        console.log("EMployees ", data);
+        if (response.ok) {
+          setEmployees(data.employees);
+        } else {
+          alert(data.message || "Error while feching employees");
+        }
+      } catch (error) {
+        console.log("Error While Fetching Employees", error);
+      }
+    };
+    fetctEmployees();
+  }, []);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const Tasks = await fetch(
+          "http://localhost:4000/api/getTasks/getAllTasks",
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+            },
+          }
+        );
+        const data = await Tasks.json();
+        //  console.log("This is tasks ",   data.Tasks)
+        if (Tasks.ok) {
+          setTasks(data.Tasks);
+        } else {
+          alert(data.message || "Error while fecthing tasks ");
+        }
+      } catch (error) {
+        console.log("Error while feteching Tasks", error);
+      }
+    };
+    fetchTasks();
+  }, []);
 
-  const handleEdit = (task) => {
+  const handleEdit = (Task) => {
+    console.log("Task passed to Edit:", Task);
+    console.log("taskId content:", Task.taskId);
+    setSelectedTask(Task._id);
+    setSelectedEmployee(Task.assignedTo?._id || "");
+    setTaskTitle(Task.taskId?._id || "");
+    setStatus(Task.status || "");
+    setDeadline(Task.deadline || null);
     setIsDialogOpen(true);
-    // setEditTask(task);
+  };
+  console.log("All tasks", alltasks);
+
+  const handleDelete = async (Task) => {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/delete/deleteTask/${Task}`,
+        {
+          method: "DELETE",
+          headers: {
+            "content-type": "applicationn/json",
+          },
+        }
+      );
+      const data = await res.json();
+      if (data) {
+        alert("Task Deleted Sucessfully..");
+        setAllTasks((prevTasks) => {
+          const UpdatedTask = prevTasks
+            .filter((tasks) => tasks._id !== Task)
+            .map((task, index) => ({
+              ...task,
+              serialNo: index + 1,
+            }));
+          return UpdatedTask;
+        });
+      }
+    } catch (error) {
+      console.log("Error while deleting the task ", error);
+    }
+  };
+
+  const handleUpdate = async () => {
+    const updatedTaskData = {
+      assignedTo: selectedEmployee,
+      taskId: tasktitle,
+      status: status,
+      deadline: deadline,
+    };
+    console.log("Upated Task data ", updatedTaskData);
+    const response = await fetch(
+      `http://localhost:4000/api/edit/editTask/${selectedTask}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(updatedTaskData),
+      }
+    );
+    const data = await response.json();
+    if (response.ok) {
+      alert("Task Updated Sucessfully...");
+      setIsDialogOpen(false);
+    } else {
+      alert(data.message || "Error in updating");
+    }
   };
 
   return (
@@ -113,8 +240,7 @@ const ManageTasks = () => {
       <Typography
         sx={{ textAlign: "center", fontWeight: "bold", fontSize: "1.2rem" }}
       >
-        {" "}
-        Tasks Assigned List{" "}
+        Tasks Assigned List
       </Typography>
       <DataGrid
         rows={alltasks}
@@ -128,52 +254,71 @@ const ManageTasks = () => {
       <Dialog
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        maxWidth="lg"
+        fullWidth
+        margin="normal"
       >
-        <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.3rem" }}>
-          {" "}
-          Edit Task Assignment{" "}
+        <DialogTitle
+          sx={{ fontWeight: "bold", fontSize: "1.5rem", textAlign: "center" }}
+        >
+          Edit Task Details
         </DialogTitle>
         <DialogContent>
-          <Select
-            label="Selct Employee"
-            value={selectEmployee}
-            fullWidth
-            margin="dense"
-            onChange={(e) => setSelectEmployee(e.target.value)}
-          ></Select>
-          <Select
-            label="Selct Task"
-            value={taskTitle}
-            fullWidth
-            margin="dense"
-            onChange={(e) => setTaskTitle(e.target.value)}
-          ></Select>
-          {/* <DesktopDatePicker
-            label="Deadline"
-            value={deadline}
-            onChange={(newvalue) => setDeadLine(newvalue)}
-            renderInput={(params) => <TextField fullWidth {...params} />}
-          /> */}
-          <FormControl>
-            <InputLabel> Status </InputLabel>
+          <FormControl fullWidth margin="dense">
+            <InputLabel> Employee</InputLabel>
             <Select
-              label="Status"
-              value={status}
-              margin="dense"
-              onChange={(e) => setStatus(e.target.value)}
+              value={selectedEmployee}
+              label="Employee"
+              fullWidth
+              onChange={(e) => setSelectedEmployee(e.target.value)}
             >
-              <MenuItem value="pending"> Pending</MenuItem>
-              <MenuItem value="inprogress"> In Progress</MenuItem>
-              <MenuItem value="completed"> Completed</MenuItem>
+              {employees.map((employee) => (
+                <MenuItem key={employee._id} value={employee._id}>
+                  {employee.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel> Task Title</InputLabel>
+            <Select
+              value={tasktitle}
+              label="Task Title"
+              fullWidth
+              onChange={(e) => setTaskTitle(e.target.value)}
+            >
+              {tasks.map((task) => (
+                <MenuItem key={task._id} value={task._id}>
+                  {" "}
+                  {task.taskTitle}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel> Status</InputLabel>
+            <Select
+              value={status}
+              label="Status"
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <MenuItem value="Pending"> Pending </MenuItem>
+              <MenuItem value="In Progress"> In Progress</MenuItem>
+              <MenuItem value="Completed"> Completed</MenuItem>
+            </Select>
+          </FormControl>
+          <DesktopDatePicker
+            label="Deadline"
+            value={deadline ? dayjs(deadline) : null}
+            fullWidth
+            onChange={(newvalue) => setDeadline(newvalue)}
+            renderInput={(params) => <TextField fullWidth {...params} />}
+          />
         </DialogContent>
-        <DialogActions
-          sx={{ display: "flex", justifyContent: "center", margin: "dense" }}
-        >
-          <Button onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained"> Update</Button>
+        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
+          <Button onClick={() => setIsDialogOpen(false)}>cancel</Button>
+          <Button variant="contained" onClick={handleUpdate}>
+            Update
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -1,4 +1,5 @@
 const assignTaskModel = require("../model/assignTaskModel");
+const TaskModel = require("../model/taskModel");
 
 const assignTask = async (req, res) => {
   const { taskId, assignedTo, assignedBy, deadline, description } = req.body;
@@ -9,6 +10,9 @@ const assignTask = async (req, res) => {
       return res.status(400).json({ message: "All Fields are required" });
     }
     await newTask.save();
+
+    await TaskModel.findByIdAndUpdate(taskId, { isAssigned: true });
+
     return res.status(200).json({ message: "Task Assigned Sucessfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error ", error });

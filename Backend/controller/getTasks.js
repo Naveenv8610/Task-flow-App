@@ -3,10 +3,10 @@ const taskModel = require("../model/taskModel");
 
 const getTasks = async (req, res) => {
   try {
-    const Tasks = await taskModel.find();
+    const Tasks = await taskModel.find({ isAssigned: false });
 
     if (!Tasks || Tasks.length === 0) {
-      res.status(404).json({ message: "No Tasks Found" });
+      return res.status(404).json({ message: "No Tasks Found" });
     }
 
     res.status(200).json({ Tasks });

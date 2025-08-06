@@ -106,8 +106,8 @@ const Update = () => {
           label="Status"
           onChange={(e) => setStatus(e.target.value)}
         >
-          <MenuItem value="pending"> Pending </MenuItem>
-          <MenuItem value="Progress"> Progress</MenuItem>
+          <MenuItem value="Pending"> Pending </MenuItem>
+          <MenuItem value="In Progress"> In Progress</MenuItem>
           <MenuItem value="Completed"> Completed</MenuItem>
         </Select>
       </FormControl>

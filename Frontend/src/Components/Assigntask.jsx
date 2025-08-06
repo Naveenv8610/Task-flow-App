@@ -77,7 +77,7 @@ const Assigntask = () => {
   const handleAssignTask = async () => {
     const userData = JSON.parse(localStorage.getItem("userData"));
 
-    console.log("This Is Admin info", userData);
+    // console.log("This Is Admin info", userData);
     const userId = userData.id;
     const selectedTask = tasks.find((task) => task._id === tasktitle);
     const body = {
@@ -102,6 +102,9 @@ const Assigntask = () => {
       const data = await response.json();
       if (response.ok) {
         alert("Task Assigned Sucessfully");
+        setTasks((prevTask) =>
+          prevTask.filter((task) => task._id !== tasktitle)
+        );
         setSelectEmployee("");
         setTaskTitle("");
         setDeadline(dayjs());
